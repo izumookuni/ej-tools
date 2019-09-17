@@ -1,10 +1,10 @@
 package cc.domovoi.tools.certification;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+//import io.jsonwebtoken.io.Decoders;
+//import io.jsonwebtoken.security.Keys;
 
-import java.security.Key;
+//import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -34,12 +34,15 @@ public class JwtUtils {
 
     public static String createToken(Map<String, Object> claims, String base64EncodedSecretKey, Optional<LocalDateTime> expirationTime, Optional<LocalDateTime> notBeforeTime, Optional<SignatureAlgorithm> signatureAlgorithm, Consumer<? super JwtBuilder> op) {
         JwtBuilder builder = Jwts.builder().addClaims(claims);
-        Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64EncodedSecretKey));
+//        Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64EncodedSecretKey));
+        byte[] key = Base64.getDecoder().decode(base64EncodedSecretKey);
         if (signatureAlgorithm.isPresent()) {
-            builder.signWith(key, signatureAlgorithm.get());
+            builder.signWith(signatureAlgorithm.get(), key);
+//            builder.signWith(key, signatureAlgorithm.get());
         }
         else {
-            builder.signWith(key);
+            builder.signWith(JwtUtils.signatureAlgorithm, key);
+//            builder.signWith(key);
         }
         expirationTime.ifPresent(time -> builder.setExpiration(Date.from(time.toInstant(zoneOffset))));
         notBeforeTime.ifPresent(time -> builder.setNotBefore(Date.from(time.toInstant(zoneOffset))));

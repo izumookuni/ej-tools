@@ -58,11 +58,11 @@ public class NullDefaultUtils {
         return Objects.nonNull(value) ? value : zero;
     }
 
-    public static <T> T defaultValue(T value, Supplier<? extends T> zero) {
+    public static <T> T lazyDefaultValue(T value, Supplier<? extends T> zero) {
         return Objects.nonNull(value) ? value : zero.get();
     }
 
-    public static <T extends DefaultValueInterface<T>> T defaultValue(T value, Class<T> clazz) throws InstantiationException, IllegalAccessException {
+    public static <T extends DefaultValueInterface<T>> T defaultValueC(T value, Class<T> clazz) throws InstantiationException, IllegalAccessException {
         return Objects.nonNull(value) ? value : clazz.newInstance().defaultValue();
     }
 
@@ -107,15 +107,15 @@ public class NullDefaultUtils {
     }
 
     public static LocalDateTime defaultLocalDateTimeValue(LocalDateTime value) {
-        return defaultValue(value, defaultLocalDateTimeValue);
+        return lazyDefaultValue(value, defaultLocalDateTimeValue);
     }
 
     public static LocalDate defaultLocalDateValue(LocalDate value) {
-        return defaultValue(value, defaultLocalDateValue);
+        return lazyDefaultValue(value, defaultLocalDateValue);
     }
 
     public static LocalTime defaultLocalTimeValue(LocalTime value) {
-        return defaultValue(value, defaultLocalTimeValue);
+        return lazyDefaultValue(value, defaultLocalTimeValue);
     }
 
     public static <T> T nvl(Predicate<? super T> nullPredicate, T... value) {
@@ -127,15 +127,37 @@ public class NullDefaultUtils {
         return null;
     }
 
+    public static <T> T lazyNvl(Predicate<? super T> nullPredicate, Supplier<? extends T>... value) {
+        for (Supplier<? extends T> v : value) {
+            T vv = v.get();
+            if (!nullPredicate.test(vv)) {
+                return vv;
+            }
+        }
+        return null;
+    }
+
     public static <T> T nvl(T... value) {
         return nvl(Objects::isNull, value);
+    }
+
+    public static <T> T lazyNvl(Supplier<? extends T>... value) {
+        return lazyNvl(Objects::isNull, value);
     }
 
     public static <T, R> R nvl2(Predicate<? super T> nullPredicate, T v1, R v2, R v3) {
         return nullPredicate.test(v1) ? v3 : v2;
     }
 
+    public static <T, R> R lazyNvl2(Predicate<? super T> nullPredicate, T v1, Supplier<? extends R> v2, Supplier<? extends R> v3) {
+        return nullPredicate.test(v1) ? v3.get() : v2.get();
+    }
+
     public static <T, R> R nvl2(T v1, R v2, R v3) {
         return nvl2(Objects::isNull, v1, v2, v3);
+    }
+
+    public static <T, R> R lazyNvl2(T v1, Supplier<? extends R> v2, Supplier<? extends R> v3) {
+        return lazyNvl2(Objects::isNull, v1, v2, v3);
     }
 }
